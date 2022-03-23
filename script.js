@@ -1,177 +1,121 @@
-var map = L.map('mapid').setView([38.63868,-90.30317], 12);
+require([
+      "esri/Map",
+      "esri/layers/FeatureLayer",
+      "esri/views/MapView",
+      "dojo/domReady!"
+    ], function(
+      Map,
+      FeatureLayer,
+      MapView
+    ) {
 
-  // load a tile layer
- L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	maxZoom: 19,
-	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+      // Create the map
+      var map = new Map({
+        basemap: "gray"
+      });
 
-function onEachFeature(feature, layer) {
-  if (feature.properties && feature.properties.popupContent) {
-    layer.bindPopup(feature.properties.popupContent);
-  }
-}
+      // Create the MapView
+      var view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center:[-90.25, 38.65],
+        zoom: 12
+      });
 
-var geojsonFeature = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "Name": "Sauce on the Side",
-        "popupContent": "<b>Sauce on the Side</b><br>Great calzones and salads"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -90.2565586566925,
-          38.627172226771336
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "Name": "Seoul  Taco",
-        "popupContent": "<b>Seoul Taco</b><br>Korean-mexican fusion, I love the burritos"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -90.24987995624542,
-          38.628341454584714
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "Name": "U-City Grill",
-        "popupContent": "<b>U-City Grill</b><br>Cash only; delicicous beef bulgogi"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -90.30848622322081,
-          38.65663598042729
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "Name": "801 Chophouse",
-        "popupContent": "<b>801 Chophouse</b><br>Elegant steakhouse"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -90.33247590065001,
-          38.64892763595949
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "Name": "Charlie Gitto's",
-        "popupContent": "<b>Charlie Gitto's</b><br>Best creme brulee in STL"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -90.27347803115843,
-          38.61791831050015
-        ]
-      }
-    }
-  ]
+      /*************************************************************
+       * The PopupTemplate content is the text that appears inside the
+       * popup. {fieldName} can be used to reference the value of an
+       * attribute of the selected feature. HTML elements can be used
+       * to provide structure and styles within the content. The
+       * fieldInfos property is an array of objects (each object representing
+       * a field) that is use to format number fields and customize field
+       * aliases in the popup and legend.
+       **************************************************************/
+
+      var template = { // autocasts as new PopupTemplate()
+        title: "Neighborhood: {NHD_NAME}",
+        content: [{
+          // It is also possible to set the fieldInfos outside of the content
+          // directly in the popupTemplate. If no fieldInfos is specifically set
+          // in the content, it defaults to whatever may be set within the popupTemplate.
+          type: "fields",
+          fieldInfos: [{
+            fieldName: "{NHD_NUM}",
+            label: "Neighborhood Number: ",
+            visible: true
+          }, {
+            fieldName: "{Shape__Area}",
+            label: "Size: ",
+            visible: true,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }, {
+            fieldName: "{ANGLE}",
+            label: "Angle: ",
+            visible: true,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }, {
+            fieldName: "Team",
+            label: "Team",
+            visible: false,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }, {
+            fieldName: "RankingType",
+            label: "Ranking Type",
+            visible: false,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }
+                      ]
+        }]
+      };
+
+     var symbol = {
+      type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+      url: "https://cdn.iconscout.com/icon/premium/png-256-thumb/hockey-240-984443.png",
+      width: "64px",
+      height: "64px"
 };
+  var renderer = {
+      type: "simple",  // autocasts as new SimpleRenderer()
+      symbol: symbol
+    };
+  
+  
+      // Reference the popupTemplate instance in the
+      // popupTemplate property of FeatureLayer
+      var featureLayer = new FeatureLayer({
+        url: "https://services2.arcgis.com/bB9Y1bGKerz1PTl5/ArcGIS/rest/services/STL_Neighborhood/FeatureServer/0",
+        outFields: ["*"],
+        popupTemplate: template,
+        renderer:renderer
+      });
+  
+      map.add(featureLayer);
+  
 
-L.geoJSON(geojsonFeature, {
-  onEachFeature: onEachFeature
-}).addTo(map);
-
-//var feat = L.geoJSON(geojsonFeature).addTo(map);
-
-//feat.bindPopup("help").openPopup();
-
-var myLines = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -106.5234375,
-            35.10193405724606
-          ],
-          [
-            -106.41357421875,
-            35.37113502280101
-          ],
-          [
-            -106.0400390625,
-            35.567980458012094
-          ],
-          [
-            -105.79833984375,
-            35.69299463209881
-          ],
-          [
-            -105.6005859375,
-            35.47856499535729
-          ],
-          [
-            -105.40283203124999,
-            35.460669951495305
-          ],
-          [
-            -105.09521484375,
-            35.69299463209881
-          ],
-          [
-            -104.83154296875,
-            35.94243575255426
-          ],
-          [
-            -104.74365234375,
-            36.049098959065645
-          ],
-          [
-            -104.6337890625,
-            36.2265501474709
-          ],
-          [
-            -104.6337890625,
-            36.421282443649496
-          ]
-        ]
-      }
-    }
-  ]
-}
-
-var myStyle = {
-    "color": "#ff7800",
-    "weight": 2,
-    "opacity": 0.65
-};
-
-L.geoJSON(myLines, {
-    style: myStyle
-}).addTo(map);
-
-
-
-L.geoJSON(states, {
-    style: function(feature) {
-        switch (feature.properties.party) {
-            case 'Republican': return {color: "#C8C9C7"};
-            case 'Democrat':   return {color: "#003DA5"};
+   /*
+      featureLayer.renderer = {
+      type: "simple",  // autocasts as new SimpleRenderer()
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        size: 6,
+        color: "red",
+        outline: {  // autocasts as new SimpleLineSymbol()
+          width: 0.5,
+          color: "white"
         }
-    }
-}).addTo(map);
+      }
+    };*/
+    });
+
